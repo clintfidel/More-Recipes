@@ -1,0 +1,14 @@
+{
+  "development": {
+    "use_env_variable": "postgres://yfrvxgez:Gaf9UvbbmCbFavW9_tuYOceE9fQK9M-n@pellefant.db.elephantsql.com:5432/yfrvxgez",
+    "dialect": "postgres"
+  },
+  "test": {
+  "use_env_variable": "DATABASE_TEST_URL",
+  "dialect": "postgres"
+  },
+  "production": {
+"use_env_variable": "DATABASE_URL",
+"dialect": "postgres"
+  }
+}
