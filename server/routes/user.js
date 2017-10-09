@@ -6,13 +6,16 @@ const app = express.Router();
 
 // Sign up route
 app.route('/signup')
-  .post(Authorization.checkUserInput,Authorization.isSignedUpWithUsername,
-    Authorization.isSignedUpWithEmail, UserController.create);
+  .post(Authorization.checkUserInput,
+    UserController.signup);
 
 // Sign in route
 app.route('/signin')
   .post(Authorization.validateLogin, UserController.login);
 
+// get all user Route
+app.route('/')
+  .get(Authorization.isLoggedIn, Authorization.isAdmin, UserController.getUsers);
 
 
 export default app;

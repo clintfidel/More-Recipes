@@ -1,31 +1,46 @@
-export default (sequelize, DataTypes) => {
+module.exports = (sequelize, DataTypes) => {
   const User = sequelize.define('User', {
     fullName: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
+      required: true
     },
     username: {
       type: DataTypes.STRING,
+      allowNull: false,
       unique: true
     },
-    password: DataTypes.STRING,
     email: {
       type: DataTypes.STRING,
+      allowNull: false,
       unique: true
+    },
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      required: true
     },
     active: {
       type: DataTypes.BOOLEAN,
-      defaultValue: false
     },
-  }, {
-    classMethods: {
-      associate: (models) => {
-        // associations can be defined here
-        User.hasMany(models.Reviews, {
-          foreignKey: 'userId'
-        });
-      }
+    isAdmin: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
     }
   });
+  User.associate = (models) => {
+    User.hasMany(models.Recipe, {
+      foreignKey: 'userId'
+    });
+    User.hasMany(models.Favourite, {
+      foreignKey: 'userId'
+    });
+    User.hasMany(models.Review, {
+      foreignKey: 'userId'
+    });
+    User.hasMany(models.Vote, {
+      foreignKey: 'userId'
+    });
+  };
   return User;
 };

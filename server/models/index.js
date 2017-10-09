@@ -7,7 +7,6 @@ import dbConfig from '../config/config.json';
 const basename = path.basename(module.filename);
 const env = process.env.NODE_ENV || 'development';
 const config = dbConfig[env];
-
 const db = {};
 dotenv.config();
 let sequelize;
