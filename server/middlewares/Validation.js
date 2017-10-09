@@ -1,12 +1,15 @@
+import db from '../models/index';
+
+const { Review, Recipe, User } = db;
 export default {
   checkUserInput(req, res, next) {
     req.checkBody(
       {
-        title: {
+        recipeName: {
           notEmpty: true,
-          errorMessage: 'Recipe title is required'
+          errorMessage: 'Recipe Name is required'
         },
-        description: {
+        descriptions: {
           notEmpty: true,
           errorMessage: 'Please add recipe description'
         },
@@ -14,7 +17,7 @@ export default {
           notEmpty: true,
           errorMessage: 'Please provide a guide'
         },
-        details: {
+        ingredients: {
           notEmpty: true,
           errorMessage: 'Give lists of recipe ingredients'
         },
@@ -29,7 +32,7 @@ export default {
       const allErrors = [];
       errors.forEach((error) => {
         allErrors.push({
-          error: error.msg,
+          error: error.msg
         });
       });
       return res.status(409)
@@ -37,16 +40,116 @@ export default {
           allErrors
         );
     }
-    //console.log(req.body.details.split(' '))
     req.userInput = {
-      title: req.body.title,
+      recipeName: req.body.recipeName,
       instructions: req.body.instructions,
-      details: req.body.details,
-      description: req.body.description,
+      ingredients: req.body.ingredients,
+      descriptions: req.body.descriptions,
+      views: req.body.views,
+      votes: req.body.votes,
       userId: req.body.userId
     };
     next();
   },
+
+  verifyUserId(req, res, next) {
+    Recipe
+      .findOne({
+        where: {
+          userId: req.body.userId
+        }
+      })
+      .then((user) => {
+        if (user) {
+          res.status(403).send({
+            status: 'failed',
+            message: 'this user cannot perform this operation more than once'
+          });
+        } else {
+          next();
+        }
+      });
+  },
+
+  verifyUserIdExist(req, res, next) {
+    User
+      .findOne({
+        where: {
+          id: req.body.userId
+        }
+      })
+      .then((user) => {
+        if (!user) {
+          return res.status(404).send({
+            message: 'your userId doesnt exist in the database'
+          });
+        }
+        next();
+      })
+      .catch(error => res.status(404).send(error.errors));
+  },
+
+  verifyRecipeId(req, res, next) {
+    Review
+      .findOne({
+        where: {
+          recipeId: req.params.recipeId
+        }
+      })
+      .then((recipe) => {
+        if (recipe) {
+          return res.status(401).send({
+            message: 'you cannot review the same recipe more than one'
+          });
+        }
+
+        next();
+      })
+      .catch(error => res.status(403).send(error.errors));
+  },
+
+  recipeNameExist(req, res, next) {
+    Recipe
+      .findOne({
+        where: {
+          recipeName: req.body.recipeName
+        }
+      })
+      .then((name) => {
+        if (name) {
+          return res.status(400).json({
+            error: 'recipe name already exist in database'
+          });
+        }
+        next();
+      })
+      .catch(() => res.status(401).send({
+        error: 'pls supply the name of the recipe'
+      }));
+  },
+
+
+  verifyRecipe(req, res, next) {
+    Recipe
+      .findOne({
+        where: {
+          id: req.params.recipeId
+        }
+      })
+      .then((recipe) => {
+        if (recipe) {
+          next();
+        } else {
+          return res.status(404).send({
+            message: 'no recipe found'
+          });
+        }
+      })
+      .catch(() => res.status(404).send({
+        status: false
+      }));
+  },
+
   checkReviewsInput(req, res, next) {
     req.checkBody(
       {
@@ -58,10 +161,6 @@ export default {
           notEmpty: true,
           errorMessage: 'Please add reviews'
         },
-        recipeId: {
-          notEmpty: true,
-          errorMessage: 'Please provide recipe id'
-        },
       }
     );
     const errors = req.validationErrors();
@@ -69,7 +168,7 @@ export default {
       const allErrors = [];
       errors.forEach((error) => {
         allErrors.push({
-          error: error.msg,
+          error: error.msg
         });
       });
       return res.status(409)
@@ -80,7 +179,7 @@ export default {
     req.reviewInput = {
       userId: req.body.userId,
       content: req.body.content,
-      recipeId: req.params.recipeId,
+      recipeId: req.params.recipeId
     };
     next();
   }
