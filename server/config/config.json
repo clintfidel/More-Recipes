@@ -2,7 +2,7 @@
   "development": {
  "username": "postgres",
  "password": "postgres",
- "database": "More-recipes",
+ "database": "MoreRecipes",
  "port": 5432,
  "host": "localhost",
  "dialect": "postgres"

@@ -12,36 +12,45 @@ app.route('/')
 
 // Get all Recipes
 app.route('/')
-  .get(Authorization.isLoggedIn, RecipeController.getRecipe)
+  .get(Authorization.isLoggedIn, RecipeController.getRecipe);
 
-//Delete a recipe
+// Delete a recipe
 app.route('/:recipeId')
-  .delete(Authorization.isLoggedIn, RecipeController.deleteARecipe)
+  .delete(Authorization.isLoggedIn, RecipeController.deleteARecipe);
 
-//Modify a recipe
+// Modify a recipe
 app.route('/:recipeId')
-  .put(Authorization.isLoggedIn, RecipeController.modifyRecipe)
+  .put(Authorization.isLoggedIn, RecipeController.modifyRecipe);
 
-//Review a recipe
+// Review a recipe
 app.route('/:recipeId/reviews')
-  .post(Authorization.isLoggedIn, 
-    Validation.checkReviewsInput, 
-    RecipeController.reviewRecipe)
+  .post(Authorization.isLoggedIn,
+    Validation.checkReviewsInput,
+    RecipeController.reviewRecipe);
 
-//Add favourite recipe
+// Add favourite recipe
 app.route('/favourites/:recipeId')
-  .post(Authorization.isLoggedIn, 
-    RecipeController.favouriteRecipe)
+  .post(Authorization.isLoggedIn,
+    RecipeController.favouriteRecipe);
 
-//Get favourite recipe
+// Get favourite recipe
 app.route('/favourites/:userId')
-  .get(Authorization.isLoggedIn, 
-    RecipeController.getFavourites)
+  .get(Authorization.isLoggedIn,
+    RecipeController.getFavouriteRecipes);
 
 
-//upVote a recipe
+// upVote a recipe
 app.route('/upvote/:recipeId')
-  .get(Authorization.isLoggedIn, 
-    RecipeController.upVoteRecipe)
+  .post(Authorization.isLoggedIn, Validation.upVote,
+    RecipeController.upVoteRecipe);
+
+// downVote a recipe
+app.route('/downvote/:recipeId')
+  .post(Authorization.isLoggedIn, Validation.downVote,
+    RecipeController.downVoteRecipe);
+
+app.route('/reviews/:recipeId')
+  .post(Authorization.isLoggedIn, Validation.checkReviewsInput,
+    RecipeController.reviewRecipe);
 
 export default app;

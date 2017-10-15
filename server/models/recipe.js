@@ -50,7 +50,8 @@ module.exports = (sequelize, DataTypes) => {
     });
     Recipe.hasMany(models.Review, {
       foreignKey: 'recipeId',
-      onDelete: 'CASCADE'
+      onDelete: 'CASCADE',
+      hooks: true,
     });
     Recipe.hasMany(models.Favourite, {
       foreignKey: 'recipeId',

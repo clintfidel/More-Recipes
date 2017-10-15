@@ -55,45 +55,60 @@ export default {
       .findById(req.params.recipeId)
       .then((currentRecipe) => {
         const userId = req.body.userId;
+        if (currentRecipe === null) {
+          return res.status(401).send({
+            status: false,
+            message: 'No recipe found in the database...'
+          });
+        }
         if (+currentRecipe.userId !== +userId) {
-          res.status(403).send({
+          return res.status(403).send({
             status: 'failed',
-            error: ' sorry you can\'t delete a recipe'
+            error: ' sorry you can only delete your own recipe'
           });
         }
-      })
-      .then(() => {
-        Recipe
-          .findOne({
-            where: {
-              id: req.params.recipeId
-            }
-          });
-      });
-    return Recipe
-      .destroy({
-        where: {
-          id: req.params.recipeId,
-          userId: req.body.userId
-        }
-      })
-      .then((recipe) => {
-        if (recipe) {
-          return res.status(200).send({
+        return currentRecipe.destroy()
+          .then(() => res.status(200).send({
             status: 'success',
             message: 'Recipe deleted successfully'
-
-          });
-        }
-        res.status(401).send({
-          status: false,
-          message: 'No recipe found in the database...'
-        });
+          }));
       })
       .catch(error => res.status(409).send({
         status: 'false',
         message: error
       }));
+    //   .then(() => {
+    //     Recipe
+    //       .findOne({
+    //         where: {
+    //           id: req.params.recipeId
+    //         }
+    //       });
+    //   });
+    // return Recipe
+    //   .destroy({
+    //     where: {
+    //       id: req.params.recipeId,
+    //       userId: req.body.userId
+    //     }
+    //   })
+    // .then((recipe) => {
+    //   if (recipe) {
+    //     return res.status(200).send({
+    //       status: 'success',
+    //       message: 'Recipe deleted successfully'
+
+    //     });
+    //   }
+    //   res.status(401).send({
+    //     status: false,
+    //     message: 'No recipe found in the database...'
+    //   });
+    // })
+    // .catch(error => res.status(409).send({
+    //   status: 'false',
+    //   message: error
+    // }));
   },
 
   modifyRecipe(req, res) {
@@ -102,7 +117,7 @@ export default {
       .then((currentRecipe) => {
         const userId = req.body.userId;
         if (+currentRecipe.userId !== +userId) {
-          return res.status(401).send({
+          return res.status(403).send({
             errorMessage: 'you can only modify your own recipe'
           });
         }
@@ -118,7 +133,8 @@ export default {
         Recipe
           .update(req.body, {
             where: {
-              id: req.params.recipeId
+              id: req.params.recipeId,
+              userId: req.body.userId
             }
           })
           .then(() => {
@@ -149,10 +165,11 @@ export default {
   },
 
   reviewRecipe(req, res) {
+    console.log(req.reviewInput, '====******=======');    
     Review
       .findOne({
         where: {
-          id: req.params.recipeId,
+          recipeId: req.params.recipeId,
           userId: req.body.userId
         },
         include: [{
@@ -167,9 +184,12 @@ export default {
           message: 'Review added successfully',
           data: { userId: recipe.userId, recipeId: recipe.recipeId }
         }))
-        .catch(() => res.status(400).send({
-          message: 'no recipe found'
-        })));
+        .catch((err) => {
+          console.log(err, '===========')
+          res.status(400).send({
+            message: 'no recipe found'
+          });
+        }));
   },
   getReview(req, res) {
     return Review
@@ -297,33 +317,20 @@ export default {
 
         vote.increment('votes')
           .then(() => vote.reload());
-        return res.status(200).send({
-          message: 'upvote successful'
-        });
-      })
-      .then(() => {
-        Vote
-          .update({
-            where: {
-              id: req.params.recipeId,
-              upvote: req.body.upvote + 1
-            }
-          })
-          .then((update) => {
-            if (!update) {
-              return res.status(404).send({
-                message: 'no vote found'
-              });
-            }
-
-            update.increment('upvote')
-              .then(() => update.reload());
-            return res.status(200).send({
-              message: 'upvote successful'
-            });
+        if (req.message === 'created') {
+          return res.status(200).send({
+            message: 'upvote successful'
           });
-      })
-      .catch(error => res.status(403).send(error));
+        } else if (req.message === 'updated') {
+          return res.status(200).send({
+            message: 'vote updated successfully'
+          });
+        } else if (req.message === 'destroyed') {
+          return res.status(200).send({
+            message: 'vote removed successfully'
+          });
+        }
+      });
   },
 
   downVoteRecipe(req, res) {
@@ -344,30 +351,7 @@ export default {
         return res.status(200).send({
           message: 'downvote successful'
         });
-      })
-      .then(() => {
-        Vote
-          .update({
-            where: {
-              id: req.params.recipeId,
-              downvote: req.body.downvote
-            }
-          })
-          .then((update) => {
-            if (!update) {
-              return res.status(404).send({
-                message: 'no vote found'
-              });
-            }
-
-            update.decrement('downvote')
-              .then(() => update.reload());
-            return res.status(200).send({
-              message: 'upvote successful'
-            });
-          });
-      })
-      .catch(error => res.status(403).send(error));
+      });
   },
 
   getUpVoteRecipe(req, res) {
@@ -383,6 +367,7 @@ export default {
       })
       .catch(error => res.status(404).send(error));
   },
+
 
   getDownVoteRecipe(req, res) {
     return Vote
@@ -408,6 +393,7 @@ export default {
       })
       .catch(error => res.status(404).send(error));
   },
+
   viewRecipes(req, res) {
     return Recipe
       .findOne({
@@ -421,7 +407,6 @@ export default {
             message: 'no recipe found to be viewed'
           });
         }
-
         view.increment('views')
           .then(() => view.reload());
         return res.status(200).send({

@@ -7,7 +7,7 @@ const app = express.Router();
 // Sign up route
 app.route('/signup')
   .post(Authorization.checkUserInput,
-    UserController.signup);
+    UserController.signUp);
 
 // Sign in route
 app.route('/signin')
@@ -15,7 +15,7 @@ app.route('/signin')
 
 // get all user Route
 app.route('/')
-  .get(Authorization.isLoggedIn, Authorization.isAdmin, UserController.getUsers);
+  .get(Authorization.isLoggedIn, Authorization.isAdmin, UserController.getAllUsers);
 
 
 export default app;

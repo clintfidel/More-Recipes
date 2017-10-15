@@ -68,6 +68,7 @@ export default {
    * @param  {Object} res - response
    * @param  {Object} next - calls the next method
    */
+
   validateLogin(req, res, next) {
     if (!req.body.username || !req.body.password) {
       return res.status(400)
@@ -88,58 +89,59 @@ export default {
         } else {
           return res.status(401)
             .json({
-             ' message': 'Invalid Credentials.'
+              ' message': 'Invalid Credentials.'
             });
         }
       })
-      .catch((error)=> res.status(401).send({
-        error : 'ivalid details passed'
-      }))
+      .catch(error => res.status(401).send({
+        error,
+        message: 'invalid details passed'
+      }));
   },
 
-  isSignedUpWithUsername (req, res, next) {
-  User
-    .findOne({
-      where : {
-        username: req.body.username
-      }
-    })
-    .then((user) => {
-      if(user){
-        return res.status(400).json({
-          'error': 'username already exist in database'
-        })
-      }
-      else {
-      next();
-      }
-    })
-    .catch((error)=> res.status(401).send({
-      error : 'ivalid details passed'
-    }));
-  },
-
-  isSignedUpWithEmail (req, res, next) {
+  isSignedUpWithUsername(req, res, next) {
     User
       .findOne({
-        where : {
+        where: {
+          username: req.body.username
+        }
+      })
+      .then((user) => {
+        if (user) {
+          return res.status(400).json({
+            error: 'username already exist in database'
+          });
+        }
+
+        next();
+      })
+      .catch(error => res.status(401).send({
+        error,
+        message: 'invalid details passed'
+      }));
+  },
+
+  isSignedUpWithEmail(req, res, next) {
+    User
+      .findOne({
+        where: {
           email: req.body.email
         }
       })
       .then((user) => {
-        if(user){
+        if (user) {
           return res.status(400).json({
-            'error': 'email already exist in database'
-          })
+            error: 'email already exist in database'
+          });
         }
-        else {
+
         next();
-        }
       })
-      .catch((error)=> res.status(401).send({
-        error : 'ivalid details passed'
+      .catch(error => res.status(401).send({
+        error,
+        message: 'invalid details passed'
       }));
-    },
+  },
 
   isLoggedIn(req, res, next) {
     const token = req.headers['x-access-token'];
@@ -163,4 +165,21 @@ export default {
         });
     }
   },
-}
+
+  isAdmin(req, res, next) {
+    const decodeToken = req.decoded;
+    if (typeof decodeToken.currentUser.isAdmin === 'undefined') {
+      return res.status(403).send({
+        message: 'you do not have permkission to perform this operation'
+      });
+    } else if (decodeToken.currentUser.isAdmin === true) {
+      next();
+    } else {
+      res.status(403).send({
+        status: false,
+        message: 'you are not authorized to perform this operation '
+      });
+    }
+  }
+};
+

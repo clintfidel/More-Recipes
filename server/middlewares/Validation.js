@@ -1,6 +1,6 @@
 import db from '../models/index';
 
-const { Review, Recipe, User } = db;
+const { Review, Recipe, User, Vote } = db;
 export default {
   checkUserInput(req, res, next) {
     req.checkBody(
@@ -176,11 +176,96 @@ export default {
           allErrors
         );
     }
+    console.log(req.body, '*******')
     req.reviewInput = {
       userId: req.body.userId,
       content: req.body.content,
       recipeId: req.params.recipeId
     };
     next();
+  },
+
+  downVote(req, res, next) {
+    Vote
+      .findOne({
+        where: { $and: [
+          { recipeId: req.params.recipeId },
+          { userId: req.body.userId, }
+        ]
+        }
+      })
+      .then((found) => {
+        if (found !== null && found.downvote) {
+          return Vote.destroy({
+            where: { $and: [
+              { recipeId: req.params.recipeId },
+              { userId: req.body.userId, }
+            ]
+            }
+          }).then(() => {
+            next();
+          });
+        } else if (found !== null && !found.downvote) {
+          return found.update({
+            upvote: 0,
+            downvote: 1
+          }).then(() => {
+            next();
+          });
+        } else if (found === null) {
+          return Vote.create({
+            recipeId: req.params.recipeId,
+            userId: req.body.userId,
+            upvote: 0,
+            downvote: 1
+          }).then(() => {
+            next();
+          });
+        }
+      });
+  },
+
+  upVote(req, res, next) {
+    Vote
+      .findOne({
+        where: { $and: [
+          { recipeId: req.params.recipeId },
+          { userId: req.body.userId, }
+        ]
+        }
+      })
+      .then((found) => {
+        if (found !== null && found.upvote) {
+          return Vote.destroy({
+            where: { $and: [
+              { recipeId: req.params.recipeId },
+              { userId: req.body.userId, }
+            ]
+            }
+          }).then(() => {
+            req.message = 'destroyed';
+            next();
+          });
+        } else if (found !== null && !found.upvote) {
+          return found.update({
+            upvote: 1,
+            downvote: 0
+          }).then(() => {
+            req.message = 'updated';
+            next();
+          });
+        } else if (found === null) {
+          return Vote.create({
+            recipeId: req.params.recipeId,
+            userId: req.body.userId,
+            upvote: 1,
+            downvote: 0
+          }).then(() => {
+            req.message = 'created';
+            next();
+          });
+        }
+      
+      });
   }
 };

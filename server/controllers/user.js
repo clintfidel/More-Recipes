@@ -12,7 +12,8 @@ export default {
    * @param  {object} res response object
    * Route: POST: api/users/signup
    */
-  create(req, res) {
+
+  signUp(req, res) {
     return User
       .create(req.userInput)
       .then((user) => {
@@ -45,6 +46,7 @@ export default {
    * @param  {object} res
    * Route: POST: /users/signin
    */
+
   login(req, res) {
     User
       .findOne({
@@ -75,4 +77,21 @@ export default {
           });
       });
   },
+
+  getAllUsers(req, res) {
+    User
+      .findAll({})
+      .then((user) => {
+        if (!user) {
+          return res.status(404).json({
+            message: 'no user found in the database'
+          });
+        }
+
+        return res.status(200).json(user);
+      })
+      .catch(() => res.status(403).json({
+        status: false
+      }));
+  }
 };
