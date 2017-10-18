@@ -1,46 +1,91 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import nodemailer from 'nodemailer';
+import winston from 'winston';
 import db from '../models/';
 
 dotenv.load();
 const key = process.env.secretKey;
 const { User } = db;
 
+
+const transporter = nodemailer.createTransport({
+  service: 'Gmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.USER,
+    pass: process.env.PASS
+  },
+  tls: {
+    rejectUnauthorized: false
+  }
+});
+
 export default {
+
+  signUpNotification(req, res, next) {
+    User
+      .findOne({
+        where: {
+          username: req.body.username,
+          email: req.body.email
+        }
+      })
+      .then((user) => {
+        if (user) {
+          const mailOptions = {
+            from: '"More-Recipes" <clintfidel@gmail.com@gmail.com>',
+            to: user.email,
+            subject: 'Account created',
+            text: 'Your account has been successful created, click on the link below to check',
+          };
+
+          transporter.sendMail(mailOptions, (err, response) => {
+            if (err) {
+              winston.info(err);
+            }
+            winston.info('Email sent to: %s', response);
+            next();
+          });
+        }
+      })
+      .catch(error => res.status(400).send(error));
+  },
+
   checkUserInput(req, res, next) {
     const userNameError = 'Please provide a username with atleast 5 characters.';
-    req.checkBody(
-      {
-        username: {
-          notEmpty: true,
-          isLength: {
-            options: [{ min: 5 }],
-            errorMessage: userNameError
-          },
-          errorMessage: 'Your Username is required'
+    req.checkBody({
+      username: {
+        notEmpty: true,
+        isLength: {
+          options: [{ min: 5 }],
+          errorMessage: userNameError
         },
-        email: {
-          notEmpty: true,
-          isEmail: {
-            errorMessage: 'Provide a valid a Email Adrress'
-          },
-          errorMessage: 'Your Email Address is required'
+        errorMessage: 'Your Username is required'
+      },
+      email: {
+        notEmpty: true,
+        isEmail: {
+          errorMessage: 'Provide a valid a Email Adrress'
         },
-        fullName: {
-          notEmpty: true,
-          errorMessage: 'Your Fullname is required'
+        errorMessage: 'Your Email Address is required'
+      },
+      fullName: {
+        notEmpty: true,
+        errorMessage: 'Your Fullname is required'
+      },
+      password: {
+        notEmpty: true,
+        isLength: {
+          options: [{ min: 8 }],
+          errorMessage: 'Provide a valid password with minimum of 8 characters'
         },
-        password: {
-          notEmpty: true,
-          isLength: {
-            options: [{ min: 8 }],
-            errorMessage: 'Provide a valid password with minimum of 8 characters'
-          },
-          errorMessage: 'Your Password is required'
-        }
+        errorMessage: 'Your Password is required'
       }
-    );
+    });
     const errors = req.validationErrors();
     if (errors) {
       const allErrors = [];
@@ -50,9 +95,7 @@ export default {
         });
       });
       return res.status(409)
-        .json(
-          allErrors
-        );
+        .json(allErrors);
     }
     const password = bcrypt.hashSync(req.body.password, 10); // encrypt password
     req.userInput = {
@@ -76,12 +119,11 @@ export default {
           message: 'Please provide your username or password to login'
         });
     }
-    User.findOne(
-      {
-        where: {
-          username: req.body.username
-        }
-      })
+    User.findOne({
+      where: {
+        username: req.body.username
+      }
+    })
       .then((user) => {
         if (user &&
           bcrypt.compareSync(req.body.password, user.password)) {

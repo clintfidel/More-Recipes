@@ -6,9 +6,10 @@ const app = express.Router();
 
 // Sign up route
 app.route('/signup')
-  .post(Authorization.checkUserInput,
+  .post(Authorization.checkUserInput, Authorization.isSignedUpWithEmail,
+    Authorization.isSignedUpWithUsername,
+    Authorization.signUpNotification,
     UserController.signUp);
-
 // Sign in route
 app.route('/signin')
   .post(Authorization.validateLogin, UserController.login);

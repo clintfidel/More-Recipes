@@ -1,32 +1,33 @@
 import db from '../models/index';
 
-const { Review, Recipe, User, Vote } = db;
+const {
+  Review, Recipe, User, Vote
+} = db;
+
 export default {
   checkUserInput(req, res, next) {
-    req.checkBody(
-      {
-        recipeName: {
-          notEmpty: true,
-          errorMessage: 'Recipe Name is required'
-        },
-        descriptions: {
-          notEmpty: true,
-          errorMessage: 'Please add recipe description'
-        },
-        instructions: {
-          notEmpty: true,
-          errorMessage: 'Please provide a guide'
-        },
-        ingredients: {
-          notEmpty: true,
-          errorMessage: 'Give lists of recipe ingredients'
-        },
-        userId: {
-          notEmpty: true,
-          errorMessage: 'User Id is required'
-        }
+    req.checkBody({
+      recipeName: {
+        notEmpty: true,
+        errorMessage: 'Recipe Name is required'
+      },
+      descriptions: {
+        notEmpty: true,
+        errorMessage: 'Please add recipe description'
+      },
+      instructions: {
+        notEmpty: true,
+        errorMessage: 'Please provide a guide'
+      },
+      ingredients: {
+        notEmpty: true,
+        errorMessage: 'Give lists of recipe ingredients'
+      },
+      userId: {
+        notEmpty: true,
+        errorMessage: 'User Id is required'
       }
-    );
+    });
     const errors = req.validationErrors();
     if (errors) {
       const allErrors = [];
@@ -36,9 +37,7 @@ export default {
         });
       });
       return res.status(409)
-        .json(
-          allErrors
-        );
+        .json(allErrors);
     }
     req.userInput = {
       recipeName: req.body.recipeName,
@@ -151,18 +150,16 @@ export default {
   },
 
   checkReviewsInput(req, res, next) {
-    req.checkBody(
-      {
-        userId: {
-          notEmpty: true,
-          errorMessage: 'UserId is required'
-        },
-        content: {
-          notEmpty: true,
-          errorMessage: 'Please add reviews'
-        },
-      }
-    );
+    req.checkBody({
+      userId: {
+        notEmpty: true,
+        errorMessage: 'UserId is required'
+      },
+      content: {
+        notEmpty: true,
+        errorMessage: 'Please add reviews'
+      },
+    });
     const errors = req.validationErrors();
     if (errors) {
       const allErrors = [];
@@ -172,11 +169,9 @@ export default {
         });
       });
       return res.status(409)
-        .json(
-          allErrors
-        );
+        .json(allErrors);
     }
-    console.log(req.body, '*******')
+    console.log(req.body, '*******');
     req.reviewInput = {
       userId: req.body.userId,
       content: req.body.content,
@@ -188,19 +183,21 @@ export default {
   downVote(req, res, next) {
     Vote
       .findOne({
-        where: { $and: [
-          { recipeId: req.params.recipeId },
-          { userId: req.body.userId, }
-        ]
+        where: {
+          $and: [
+            { recipeId: req.params.recipeId },
+            { userId: req.body.userId, }
+          ]
         }
       })
       .then((found) => {
         if (found !== null && found.downvote) {
           return Vote.destroy({
-            where: { $and: [
-              { recipeId: req.params.recipeId },
-              { userId: req.body.userId, }
-            ]
+            where: {
+              $and: [
+                { recipeId: req.params.recipeId },
+                { userId: req.body.userId, }
+              ]
             }
           }).then(() => {
             next();
@@ -228,19 +225,21 @@ export default {
   upVote(req, res, next) {
     Vote
       .findOne({
-        where: { $and: [
-          { recipeId: req.params.recipeId },
-          { userId: req.body.userId, }
-        ]
+        where: {
+          $and: [
+            { recipeId: req.params.recipeId },
+            { userId: req.body.userId, }
+          ]
         }
       })
       .then((found) => {
         if (found !== null && found.upvote) {
           return Vote.destroy({
-            where: { $and: [
-              { recipeId: req.params.recipeId },
-              { userId: req.body.userId, }
-            ]
+            where: {
+              $and: [
+                { recipeId: req.params.recipeId },
+                { userId: req.body.userId, }
+              ]
             }
           }).then(() => {
             req.message = 'destroyed';
@@ -265,7 +264,6 @@ export default {
             next();
           });
         }
-      
       });
   }
 };

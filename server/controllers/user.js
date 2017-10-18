@@ -17,6 +17,7 @@ export default {
     return User
       .create(req.userInput)
       .then((user) => {
+        console.log(user)
         user
           .update({
             active: true

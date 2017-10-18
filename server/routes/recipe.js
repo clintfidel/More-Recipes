@@ -22,35 +22,64 @@ app.route('/:recipeId')
 app.route('/:recipeId')
   .put(Authorization.isLoggedIn, RecipeController.modifyRecipe);
 
-// Review a recipe
-app.route('/:recipeId/reviews')
-  .post(Authorization.isLoggedIn,
-    Validation.checkReviewsInput,
-    RecipeController.reviewRecipe);
 
 // Add favourite recipe
 app.route('/favourites/:recipeId')
-  .post(Authorization.isLoggedIn,
-    RecipeController.favouriteRecipe);
+  .post(
+    Authorization.isLoggedIn,
+    RecipeController.favouriteRecipe
+  );
 
 // Get favourite recipe
 app.route('/favourites/:userId')
-  .get(Authorization.isLoggedIn,
-    RecipeController.getFavouriteRecipes);
+  .get(
+    Authorization.isLoggedIn,
+    RecipeController.getFavouriteRecipes
+  );
 
 
 // upVote a recipe
 app.route('/upvote/:recipeId')
-  .post(Authorization.isLoggedIn, Validation.upVote,
-    RecipeController.upVoteRecipe);
+  .post(
+    Authorization.isLoggedIn, Validation.upVote,
+    RecipeController.upVoteRecipe
+  );
 
 // downVote a recipe
 app.route('/downvote/:recipeId')
-  .post(Authorization.isLoggedIn, Validation.downVote,
-    RecipeController.downVoteRecipe);
+  .post(Authorization.isLoggedIn, Validation.downVote, RecipeController.downVoteRecipe);
 
+// get all upvote
+app.route('/upvote/:recipeId')
+  .post(Authorization.isLoggedIn, Validation.downVote, RecipeController.getUpVoteRecipe);
+
+// get all downvote
+app.route('/downvote/:recipeId')
+  .post(Authorization.isLoggedIn, Validation.downVote, RecipeController.getDownVoteRecipe);
+
+// get all upvote
+app.route('/upvote/:recipeId')
+  .post(Authorization.isLoggedIn, Validation.downVote, RecipeController.getUpVoteRecipe);
+
+// get all upvote in descending order
+app.route('/recipes?sort=upvotes&order=descending')
+  .get(Authorization.isLoggedIn, Validation.downVote, RecipeController.getUpVoteRecipe);
+
+
+// review a recipe
 app.route('/reviews/:recipeId')
-  .post(Authorization.isLoggedIn, Validation.checkReviewsInput,
-    RecipeController.reviewRecipe);
+  .post(
+    Authorization.isLoggedIn, Validation.checkReviewsInput, Validation.verifyRecipeId,
+    Validation.verifyUserIdExist,
+    Validation.verifyRecipe, Validation.verifyUserId, RecipeController.reviewRecipe
+  );
+
+// view recipes
+app.route('/views/:recipeId')
+  .post(
+    Authorization.isLoggedIn, Validation.verifyRecipe,
+    RecipeController.viewRecipes
+  );
+
 
 export default app;
