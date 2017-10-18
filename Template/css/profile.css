@@ -1,0 +1,106 @@
+body {
+    font-family: sans-serif;
+    background: linear-gradient(to bottom, rgb(222, 166, 140), rgba(62, 37, 12, 0.65)), url(../images/recipe1.jpg);
+    background-size: 1700px;
+    background-repeat: no-repeat;
+    height: 100%;
+}
+
+img {
+     width: 300px;
+     height: 300px;
+     margin-top: 5px;
+     margin-bottom: 10px;
+     border: 3px solid #d64d1a;
+}
+
+.wrapper {
+    min-height: 100%;
+    height: auto !important;
+    height: 100%;
+}
+
+.footer, .push {
+    height: 142px; /* .push must be the same height as .footer */
+}
+
+.navbar-brand{
+    font-size: 32px;
+    font-weight: bold;
+    font-family: Lobster, sans-serif;
+    color: white !important;
+  }
+  
+navbar {
+    background:#d64d1a;
+    border: none;    
+ }
+
+ .navbar {
+    background:#d64d1a;
+    border: none;
+    
+}
+
+.navbar-wrapper {
+    margin-bottom: 80px;
+}
+    
+.nav>li>a, li>a:focus, li>a:hover, li>a, li{
+    border-bottom: 3px solid transparent;
+    font-weight: bold;
+    font-size: 15px;
+}
+.nav>li>a:focus, .nav>li>a:hover,.nav .open>a, .nav .open>a:focus, .nav .open>a:hover, li>a:focus, li>a:hover{
+    border-bottom: 3px solid transparent;
+    background: rgba(154, 154, 154, 0.27);
+}
+
+.navbar a, li>a, li>a:focus, li>a:hover, .navbar-toggle{
+    color: #fff;
+    -webkit-transition: .5s;
+    transition: .5s;
+    
+}
+
+.nav>li>a:focus,
+.nav>li>a:hover {
+    text-decoration: underline;
+}
+
+.navbar-toggle .icon-bar{
+    color: #fff;
+    background: #000000;
+}
+
+#main {
+    background-color: #d64d1a;
+    border: .5px solid white;
+    width: 35%;
+    margin: auto;
+    padding-left: 6.5%;
+    color: white;
+    border-radius: 10px;
+    background: linear-gradient(to bottom, rgb(222, 166, 140), rgba(62, 37, 12, 0.65));
+}
+
+ul {
+    margin-right: 70px;
+}
+
+#main ul li {
+    padding-bottom: 5px;
+}
+
+#main ul li:hover {
+    margin-left: 10px;
+    color: #d64d1a;
+    -webkit-transition: .5s;
+    transition: .5s;
+}
+
+
+#profile-image-upload {
+    margin-bottom: 15px;
+    margin-top: -5px;
+}

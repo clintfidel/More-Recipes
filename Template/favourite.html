@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Top Recipe</title>
+        <meta charset="utf-8">
+        <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css"> 
+        <link rel="stylesheet" type="text/css" href="css/font-awesome.css">
+        <link href="https://fonts.googleapis.com/css?family=Lobster" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" type="text/css" href="css/favourite.css">
+        <link rel="icon" type="img/jpg" href="#">
+    </head>
+    <body>
+            <div class="container">
+                    <nav class="navbar navbar-inverse" role="navigation">
+                        <div class="container-fluid">
+                            <!-- Brand and toggle get grouped for better mobile display -->
+                            <div class="navbar-header">
+                                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                                    <span class="sr-only">Toggle navigation</span>
+                                    <span class="icon-bar"></span>
+                                    <span class="icon-bar"></span>
+                                    <span class="icon-bar"></span>
+                                </button>
+                                <a class="navbar-brand" href="#"> <i class="fa fa-th-list"></i>More Recipes</a>
+                            </div>
+            
+                            <!-- Collect the nav links, forms, and other content for toggling -->
+                            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                                <form class="navbar-form navbar-right" role="search">
+                                    <div class="form-group" id="searcRecipe">
+                                        <input type="text" class="form-control" id="searcrecipe" placeholder="Search">
+                                    <button type="submit" id="search" class="btn btn-default">search</button>
+                                  </div>                      
+                                </form>
+                                <ul class="nav navbar-nav navbar-right">
+                                    <li><a class="favourites"href="user/index.html">All Recipes</a></li>
+                                </ul>
+                            </div>
+                            <!-- /.navbar-collapse -->
+                        </div>
+                        <!-- /.container-fluid -->
+                    </nav>
+                </div>
+        <main>
+            <h3 class="text-center" style="font-family:Lobster; font-size: 30px; color: white; font-weight: bold;">My favourite</h3>
+            <div class="recipe" id="recipe1">rolls</div>
+            <div class="recipe" id="recipe2">Spaghetti</div>
+            <div class="recipe" id="recipe3">sandwitch</div>
+            <div class="recipe" id="recipe4">Chicken</div>
+            <div class="recipe" id="recipe5" >Nuts</div>
+            <div class="recipe" id="recipe6">Pies</div>
+            <div class="recipe" id="recipe7">fries</div>
+            <div class="recipe" id="recipe8">Cup Cake</div>
+            <div class="recipe" id="recipe9" >Porridge</div>
+        </main>
+        <aside>
+            <h1>User Profile</h1>
+            <img alt="User Pic" id ="User-image"src=
+            "https://x1.xingassets.com/assets/frontend_minified/img/users/nobody_m.original.jpg"
+            id="profile-image1" class=
+            "img-circle img-responsive" name=
+            "profile-image1" />
+            <input id=
+            "profile-image-upload" class="visible" type=
+            "file" /><hr><br>
+            <div class="clint">
+            <h3>Username:   Fidelis clinton</h3>
+            <h3>Status: User</h3>
+            <h3>Mode: online</h3>
+            <hr>
+            </div>
+            <form action="#" method="post">
+                <div class="profile-userbuttons">
+                    <button type="button" class="btn btn-success btn-sm">ADD RECIPES</button>
+                    <button type="button" class="btn btn-danger btn-sm">DELETE RECIPES</button>
+                </div>
+            </form>
+        </aside>
+    </body>
+</html> 
