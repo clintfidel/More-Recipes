@@ -2,14 +2,13 @@ import express from 'express';
 import RecipeController from '../controllers/recipe';
 import { checkUserInput, verifyUserId, verifyUserIdExist, verifyRecipeId,
   recipeNameExist, verifyRecipe, checkReviewsInput, downVote, upVote } from '../middlewares/Validation';
-import { isLoggedIn, } from '../middlewares/Authorization';
+import { isLoggedIn } from '../middlewares/Authorization';
 
 const app = express.Router();
 
 // Add recipes route
 app.route('/')
   .post(isLoggedIn, checkUserInput, recipeNameExist, RecipeController.addRecipe);
-
 
 // Get all Recipes
 app.route('/')
