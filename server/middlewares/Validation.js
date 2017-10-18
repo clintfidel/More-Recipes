@@ -171,7 +171,6 @@ export default {
       return res.status(409)
         .json(allErrors);
     }
-    console.log(req.body, '*******');
     req.reviewInput = {
       userId: req.body.userId,
       content: req.body.content,
