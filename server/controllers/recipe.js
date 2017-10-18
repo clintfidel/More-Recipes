@@ -1,6 +1,8 @@
 import db from '../models/index';
 
-const { Recipe, Review, Favourite, Vote } = db;
+const {
+  Recipe, Review, Favourite, Vote
+} = db;
 
 export default {
 
@@ -38,84 +40,55 @@ export default {
             }]
           }]
         })
-        .then((recipes) => {
-          if (recipes.length < 1) {
-            return res.status(200).send({
-              message: 'There is no recipe in the database'
-            });
-          }
-          return res.status(200).json(recipes);
-        })
+        .then(recipes => res.status(200).json(recipes))
         .catch(error => res.status(400).send(error));
     }
   },
 
   deleteARecipe(req, res) {
-    Recipe
+    return Recipe
       .findById(req.params.recipeId)
       .then((currentRecipe) => {
-        const userId = req.body.userId;
-        if (currentRecipe === null) {
-          return res.status(401).send({
-            status: false,
-            message: 'No recipe found in the database...'
-          });
-        }
+        const { userId } = req.body.userId;
         if (+currentRecipe.userId !== +userId) {
           return res.status(403).send({
             status: 'failed',
             error: ' sorry you can only delete your own recipe'
           });
         }
-        return currentRecipe.destroy()
-          .then(() => res.status(200).send({
-            status: 'success',
-            message: 'Recipe deleted successfully'
-          }));
-      })
-      .catch(error => res.status(409).send({
-        status: 'false',
-        message: error
-      }));
-    //   .then(() => {
-    //     Recipe
-    //       .findOne({
-    //         where: {
-    //           id: req.params.recipeId
-    //         }
-    //       });
-    //   });
-    // return Recipe
-    //   .destroy({
-    //     where: {
-    //       id: req.params.recipeId,
-    //       userId: req.body.userId
-    //     }
-    //   })
-    // .then((recipe) => {
-    //   if (recipe) {
-    //     return res.status(200).send({
-    //       status: 'success',
-    //       message: 'Recipe deleted successfully'
 
-    //     });
-    //   }
-    //   res.status(401).send({
-    //     status: false,
-    //     message: 'No recipe found in the database...'
-    //   });
-    // })
-    // .catch(error => res.status(409).send({
-    //   status: 'false',
-    //   message: error
-    // }));
+        return Recipe
+          .destroy({
+            where: {
+              id: req.params.recipeId,
+              userId: req.body.userId
+            }
+          })
+          .then((recipe) => {
+            if (recipe) {
+              return res.status(200).send({
+                status: 'success',
+                message: 'Recipe deleted successfully'
+
+              });
+            }
+            res.status(401).send({
+              status: false,
+              message: 'No recipe found in the database...'
+            });
+          })
+          .catch(error => res.status(409).send({
+            status: 'false',
+            message: error
+          }));
+      });
   },
 
   modifyRecipe(req, res) {
     Recipe
       .findById(req.params.recipeId)
       .then((currentRecipe) => {
-        const userId = req.body.userId;
+        const { userId } = req.body.userId;
         if (+currentRecipe.userId !== +userId) {
           return res.status(403).send({
             errorMessage: 'you can only modify your own recipe'
@@ -141,7 +114,7 @@ export default {
             Recipe
               .findById(req.params.recipeId)
               .then((newRecipe) => {
-                if (newRecipe.length < 1) {
+                if (!newRecipe) {
                   return res.status(404).send({
                     message: 'no recipe found'
                   });
@@ -165,7 +138,6 @@ export default {
   },
 
   reviewRecipe(req, res) {
-    console.log(req.reviewInput, '====******=======');    
     Review
       .findOne({
         where: {
@@ -185,8 +157,8 @@ export default {
           data: { userId: recipe.userId, recipeId: recipe.recipeId }
         }))
         .catch((err) => {
-          console.log(err, '===========')
           res.status(400).send({
+            err,
             message: 'no recipe found'
           });
         }));
@@ -222,11 +194,11 @@ export default {
       .findAll({
         where: {
           $or: [
-            { recipeName: {
-              $iLike: `%${query}%` }
+            {
+              recipeName: { $iLike: `%${query}%` }
             },
-            { ingredient: {
-              $iLike: `%${query}%` }
+            {
+              ingredient: { $iLike: `%${query}%` }
             }
           ]
         }
@@ -348,9 +320,19 @@ export default {
         }
         vote.decrement('votes')
           .then(() => vote.reload());
-        return res.status(200).send({
-          message: 'downvote successful'
-        });
+        if (req.message === 'created') {
+          return res.status(200).send({
+            message: 'upvote successful'
+          });
+        } else if (req.message === 'updated') {
+          return res.status(200).send({
+            message: 'vote updated successfully'
+          });
+        } else if (req.message === 'destroyed') {
+          return res.status(200).send({
+            message: 'vote removed successfully'
+          });
+        }
       });
   },
 
@@ -360,7 +342,11 @@ export default {
         where: {
           id: req.params.recipeId
         },
-        order: [['upvote', 'DESC']]
+        order: [['upvote', 'DESC']],
+        include: [{
+          model: db.Recipe,
+          attributes: ['recipeName', 'ingredients', 'views'],
+        }]
       })
       .then((display) => {
         res.status(200).json(display);
@@ -375,7 +361,11 @@ export default {
         where: {
           recipId: req.params.recipeId
         },
-        order: [['downvote', 'DESC']]
+        order: [['downvote', 'DESC']],
+        include: [{
+          model: db.Recipe,
+          attributes: ['recipeName', 'ingredients', 'views'],
+        }]
       })
       .then((display) => {
         res.status(200).json(display);
@@ -386,7 +376,12 @@ export default {
   getAllVote(req, res) {
     return Recipe
       .findAll({
-        order: [['votes', 'DESC']]
+        include: [{
+          model: db.Vote,
+          attributes: ['upvote', 'downvote'],
+          order: [['votes', 'DESC']]
+        }]
+
       })
       .then((display) => {
         res.status(200).json(display);
