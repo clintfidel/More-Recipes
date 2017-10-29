@@ -1,12 +1,25 @@
-import path from 'path';
-import webpack from 'webpack';
+const path = require('path');
+const webpack = require('webpack');
+const Dotenv = require('dotenv-webpack');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+
+const extractSass = new ExtractTextPlugin({
+  filename: '[name].[contenthash].css',
+  disable: process.env.NODE_ENV === 'development'
+});
+
+const HtmlWebpackPluginConfig = new HtmlWebpackPlugin({
+  template: './client/index.html',
+  filename: 'index.html',
+  inject: 'body'
+});
 
 module.exports = {
   entry: [
-    './client/index.js'],
+    './client/index.jsx'],
   output: {
-    path: path.join(__dirname, 'client/dist/'),
-    publicPath: '/',
+    path: path.resolve('dist'),
     filename: 'bundle.js'
   },
   devServer: {
@@ -15,6 +28,7 @@ module.exports = {
     hot: true
   },
   plugins: [
+    new Dotenv({ systemvars: true }),
     new webpack.NoEmitOnErrorsPlugin(),
     new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.HotModuleReplacementPlugin(),
@@ -23,10 +37,10 @@ module.exports = {
       jQuery: 'jquery',
       'window.jQuery': 'jquery',
       Tether: 'tether'
-    })
+    }), HtmlWebpackPluginConfig, extractSass
   ],
   module: {
-    rules: [
+    loaders: [
       {
         test: /.jsx?$/,
         enforce: 'pre',
@@ -39,8 +53,16 @@ module.exports = {
         exclude: /node_modules/,
       },
       {
-        test: /(\.s?css)$/,
-        loader: ['style-loader', 'css-loader', 'sass-loader']
+        test: /\.css$/,
+        // loader: ['style-loader', 'css-loader', 'sass-loader']
+        use: extractSass.extract({
+          use: [{
+            loader: 'css-loader'
+          }, {
+            loader: 'sass-loader'
+          }],
+          fallback: 'style-loader'
+        })
       },
       {
         test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,

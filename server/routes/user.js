@@ -1,24 +1,23 @@
 import express from 'express';
-import UserController from '../controllers/user';
-import { checkUserInput, signUpNotification, validateLogin, isSignedUpWithUsername,
-  isSignedUpWithEmail, isLoggedIn, isAdmin } from '../middlewares/Authorization';
+import { signUp, login, getAllUsers } from '../controllers/user';
+import { checkUserInput, validateLogin,
+  isLoggedIn, isAdmin } from '../middlewares/Authorization';
 
 const app = express.Router();
 
 // Sign up route
 app.route('/signup')
   .post(
-    checkUserInput, isSignedUpWithEmail, isSignedUpWithUsername,
-    signUpNotification,
-    UserController.signUp
+    checkUserInput,
+    signUp
   );
 // Sign in route
 app.route('/signin')
-  .post(validateLogin, UserController.login);
+  .post(validateLogin, login);
 
 // get all user Route
 app.route('/')
-  .get(isLoggedIn, isAdmin, UserController.getAllUsers);
+  .get(isLoggedIn, isAdmin, getAllUsers);
 
 
 export default app;

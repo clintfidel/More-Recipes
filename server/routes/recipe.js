@@ -1,14 +1,14 @@
 import express from 'express';
 import RecipeController from '../controllers/recipe';
 import { checkUserInput, verifyUserId, verifyUserIdExist, verifyRecipeId,
-  recipeNameExist, verifyRecipe, checkReviewsInput, downVote, upVote } from '../middlewares/Validation';
+  verifyRecipe, checkReviewsInput, downVote, upVote } from '../middlewares/Validation';
 import { isLoggedIn } from '../middlewares/Authorization';
 
 const app = express.Router();
 
 // Add recipes route
 app.route('/')
-  .post(isLoggedIn, checkUserInput, recipeNameExist, RecipeController.addRecipe);
+  .post(isLoggedIn, checkUserInput, verifyUserIdExist, RecipeController.addRecipe);
 
 // Get all Recipes
 app.route('/')
@@ -34,28 +34,33 @@ app.route('/favourites/:userId')
 
 // upVote a recipe
 app.route('/upvote/:recipeId')
-  .post(isLoggedIn, upVote, RecipeController.upVoteRecipe);
+  .post(isLoggedIn, verifyRecipe, upVote, RecipeController.upVoteRecipe);
 
 // downVote a recipe
 app.route('/downvote/:recipeId')
-  .post(isLoggedIn, downVote, RecipeController.downVoteRecipe);
+  .post(isLoggedIn, verifyRecipe, downVote, RecipeController.downVoteRecipe);
 
 // get all upvote
 app.route('/upvote/:recipeId')
-  .post(isLoggedIn, downVote, RecipeController.getUpVoteRecipe);
+  .get(isLoggedIn, RecipeController.getUpVoteRecipe);
 
 // get all downvote
 app.route('/downvote/:recipeId')
-  .post(isLoggedIn, downVote, RecipeController.getDownVoteRecipe);
+  .get(isLoggedIn, RecipeController.getDownVoteRecipe);
 
-// get all upvote
-app.route('/upvote/:recipeId')
-  .post(isLoggedIn, downVote, RecipeController.getUpVoteRecipe);
 
 // get all upvote in descending order
 app.route('/recipes?sort=upvotes&order=descending')
   .get(isLoggedIn, downVote, RecipeController.getUpVoteRecipe);
 
+// get the total number of upvotes
+app.route('/getUpVotes/:recipeId')
+  .get(isLoggedIn, RecipeController.getAllUpVoteCount);
+
+
+// get the total number of downvotes
+app.route('/getDownVotes/:recipeId')
+  .get(isLoggedIn, RecipeController.getAllDownVoteCount);
 
 // review a recipe
 app.route('/reviews/:recipeId')
@@ -63,6 +68,9 @@ app.route('/reviews/:recipeId')
     isLoggedIn, checkReviewsInput, verifyRecipeId, verifyUserIdExist,
     verifyRecipe, verifyUserId, RecipeController.reviewRecipe
   );
+
+app.route('/reviews/:recipeId')
+  .get(isLoggedIn, RecipeController.getReview);
 
 // view recipes
 app.route('/views/:recipeId')

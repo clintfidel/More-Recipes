@@ -1,57 +1,57 @@
-import db from '../models/index';
+import models from '../models/index';
+import { reviewRecipeNotication } from '../middlewares/Validation';
 
 const {
   Recipe, Review, Favourite, Vote
-} = db;
+} = models;
 
 export default {
-
   addRecipe(req, res) {
+    const { recipeName } = req.body;
     return Recipe
-      .create(req.userInput)
-      .then(() => {
-        res.send({
-          status: 'Success',
-          message: 'Recipe inserted succesfully'
-        });
+      .findOne({ where: { recipeName } })
+      .then((recipe) => {
+        if (!recipe) {
+          return Recipe
+            .create(req.userInput)
+            .then(() => {
+              res.send({
+                status: 'Success',
+                message: 'Recipe inserted succesfully'
+              });
+            });
+        }
+
+        res.status(409).json({ message: 'Recipe name already exist' });
       })
       .catch(error => res.status(400).send({
-        status: false,
         message: error
       }));
   },
 
   getRecipe(req, res) {
-    if (req.query.sort && req.query.order) {
-      Recipe
-        .findAll({
-          order: [['views', 'DESC']],
-          limit: 4
-        });
-    } else {
-      Recipe
-        .findAll({
+    return Recipe
+      .findAll({
+        order: [['views', req.query.order || 'DESC']],
+        include: [{
+          model: models.Review,
+          attributes: ['content'],
           include: [{
-            model: db.Review,
-            attributes: ['content'],
-            include: [{
-              model: db.User,
-              attributes: ['username', 'email', 'updatedAt']
-            }]
+            model: models.User,
+            attributes: ['username', 'email', 'updatedAt']
           }]
-        })
-        .then(recipes => res.status(200).json(recipes))
-        .catch(error => res.status(400).send(error));
-    }
+        }]
+      })
+      .then(recipes => res.status(200).json(recipes))
+      .catch(error => res.status(400).send(error));
   },
 
   deleteARecipe(req, res) {
     return Recipe
-      .findById(req.params.recipeId)
+      .findOne({ where: { id: req.params.recipeId, userId: req.body.userId } })
       .then((currentRecipe) => {
-        const { userId } = req.body.userId;
-        if (+currentRecipe.userId !== +userId) {
-          return res.status(403).send({
+        if (!currentRecipe) {
+          return res.status(401).send({
             status: 'failed',
             error: ' sorry you can only delete your own recipe'
           });
@@ -72,7 +72,7 @@ export default {
 
               });
             }
-            res.status(401).send({
+            res.status(404).send({
               status: false,
               message: 'No recipe found in the database...'
             });
@@ -88,13 +88,14 @@ export default {
     Recipe
       .findById(req.params.recipeId)
       .then((currentRecipe) => {
-        const { userId } = req.body.userId;
-        if (+currentRecipe.userId !== +userId) {
+        const { userId } = req.body;
+        if (currentRecipe.userId !== parseInt(userId, 10)) {
           return res.status(403).send({
             errorMessage: 'you can only modify your own recipe'
           });
         }
       });
+
 
     return Recipe
       .findOne({
@@ -145,7 +146,7 @@ export default {
           userId: req.body.userId
         },
         include: [{
-          model: db.User,
+          model: models.User,
           attributes: ['username', 'email', 'updatedAt']
         }]
       })
@@ -156,6 +157,9 @@ export default {
           message: 'Review added successfully',
           data: { userId: recipe.userId, recipeId: recipe.recipeId }
         }))
+        .then(() => {
+          reviewRecipeNotication(req);
+        })
         .catch((err) => {
           res.status(400).send({
             err,
@@ -167,15 +171,15 @@ export default {
     return Review
       .findAll({
         where: {
-          recipeId: req.params.recipeId,
+          recipeId: req.params.recipeId
         },
         include: [{
-          model: db.User,
+          model: models.User,
           attributes: ['username', 'email', 'updatedAt']
         }]
       })
       .then((reviews) => {
-        if (reviews.length < 1) {
+        if (!reviews) {
           return res.status(404).send({
             status: 'fail',
             message: 'no recipe found '
@@ -220,7 +224,6 @@ export default {
       });
   },
 
-
   favouriteRecipe(req, res) {
     if (!req.body.userId || !req.params.recipeId) {
       res.status(401).send({
@@ -252,13 +255,13 @@ export default {
           userId: req.params.userId
         },
         include: [{
-          model: db.Recipe,
+          model: models.Recipe,
           attributes: ['recipeName', 'ingredients', 'views', 'votes'],
           include: [{
-            model: db.User,
+            model: models.User,
             attributes: ['fullName', 'updatedAt']
           }]
-        }],
+        }]
       })
       .then((recipe) => {
         if (recipe.length < 1) {
@@ -272,7 +275,6 @@ export default {
       .catch(error => res.status(404).json(error));
   },
 
-
   upVoteRecipe(req, res) {
     Recipe
       .findOne({
@@ -281,14 +283,16 @@ export default {
         }
       })
       .then((vote) => {
-        if (vote.length < 1) {
+        if (!vote) {
           return res.status(404).send({
             message: 'no recipe found to be upvoted'
           });
         }
 
-        vote.increment('votes')
-          .then(() => vote.reload());
+        if (req.message !== 'destroyed') {
+          vote.increment('votes')
+            .then(() => vote.reload());
+        }
         if (req.message === 'created') {
           return res.status(200).send({
             message: 'upvote successful'
@@ -298,6 +302,8 @@ export default {
             message: 'vote updated successfully'
           });
         } else if (req.message === 'destroyed') {
+          vote.decrement('votes')
+            .then(() => vote.reload());
           return res.status(200).send({
             message: 'vote removed successfully'
           });
@@ -315,20 +321,24 @@ export default {
       .then((vote) => {
         if (vote.length < 1) {
           return res.status(404).send({
-            message: 'no recipe found to be upvoted'
+            message: 'no recipe found to be downvoted'
           });
         }
-        vote.decrement('votes')
-          .then(() => vote.reload());
+        if (req.message !== 'destroyed') {
+          vote.decrement('votes')
+            .then(() => vote.reload());
+        }
         if (req.message === 'created') {
           return res.status(200).send({
-            message: 'upvote successful'
+            message: 'downvote successful'
           });
         } else if (req.message === 'updated') {
           return res.status(200).send({
             message: 'vote updated successfully'
           });
         } else if (req.message === 'destroyed') {
+          vote.increment('votes')
+            .then(() => vote.reload());
           return res.status(200).send({
             message: 'vote removed successfully'
           });
@@ -340,31 +350,35 @@ export default {
     return Vote
       .findAll({
         where: {
-          id: req.params.recipeId
+          recipeId: req.params.recipeId
         },
-        order: [['upvote', 'DESC']],
         include: [{
-          model: db.Recipe,
-          attributes: ['recipeName', 'ingredients', 'views'],
-        }]
+          model: models.Recipe,
+          attributes: ['recipeName', 'views']
+        }],
+        attributes: ['userId', 'upvote']
       })
       .then((display) => {
+        if (display === null) {
+          return res.statu(400).json({
+            message: 'no recipe found'
+          });
+        }
         res.status(200).json(display);
       })
       .catch(error => res.status(404).send(error));
   },
-
 
   getDownVoteRecipe(req, res) {
     return Vote
       .findAll({
         where: {
-          recipId: req.params.recipeId
+          recipeId: req.params.recipeId
         },
-        order: [['downvote', 'DESC']],
+        attributes: ['userId', 'downvote'],
         include: [{
-          model: db.Recipe,
-          attributes: ['recipeName', 'ingredients', 'views'],
+          model: models.Recipe,
+          attributes: ['recipeName', 'views']
         }]
       })
       .then((display) => {
@@ -373,27 +387,39 @@ export default {
       .catch(error => res.status(404).send(error));
   },
 
-  getAllVote(req, res) {
-    return Recipe
-      .findAll({
-        include: [{
-          model: db.Vote,
-          attributes: ['upvote', 'downvote'],
-          order: [['votes', 'DESC']]
-        }]
+  getAllUpVoteCount(req, res) {
+    Vote
+      .findAndCountAll({
+        where: {
+          upvote: 1,
+          recipeId: req.params.recipeId
+        },
+      })
+      .then((result) => {
+        const upvote = { recipeId: req.params.recipeId, upvote: result.count };
+        return res.status(200).json(upvote);
+      });
+  },
 
+  getAllDownVoteCount(req, res) {
+    Vote
+      .findAndCountAll({
+        where: {
+          downvote: 1,
+          recipeId: req.params.recipeId
+        },
       })
-      .then((display) => {
-        res.status(200).json(display);
-      })
-      .catch(error => res.status(404).send(error));
+      .then((result) => {
+        const downvote = { recipeId: req.params.recipeId, downvote: result.count };
+        return res.status(200).json(downvote);
+      });
   },
 
   viewRecipes(req, res) {
     return Recipe
       .findOne({
         where: {
-          id: req.params.recipeId,
+          id: req.params.recipeId
         }
       })
       .then((view) => {
@@ -415,5 +441,5 @@ export default {
         });
       })
       .catch(error => res.status(403).send(error));
-  },
+  }
 };

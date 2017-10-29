@@ -18,7 +18,7 @@ app.use(webpackMiddleware(webpack(webpackConfig)));
 // app.use(logger('dev'));
 
 app.use(bodyParser.json());
-app.use(express.static('./client/public/')); // configure static files folder
+app.use(express.static('./client/public')); // configure static files folder
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(validator());
 
