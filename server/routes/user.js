@@ -1,5 +1,5 @@
 import express from 'express';
-import { signUp, login, getAllUsers } from '../controllers/user';
+import { signUp, login, getAllUsers, editProfile } from '../controllers/user';
 import { checkUserInput, validateLogin,
   isLoggedIn, isAdmin } from '../middlewares/Authorization';
 
@@ -19,5 +19,8 @@ app.route('/signin')
 app.route('/')
   .get(isLoggedIn, isAdmin, getAllUsers);
 
+// edit profile
+app.route('/editProfile')
+  .put(isLoggedIn, editProfile);
 
 export default app;

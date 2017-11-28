@@ -48,7 +48,10 @@ export default {
 
   deleteARecipe(req, res) {
     return Recipe
-      .findOne({ where: { id: req.params.recipeId, userId: req.body.userId } })
+      .findOne({ where: 
+        { id: req.params.recipeId, 
+        userId: req.decoded.currentUser.userId 
+        } })
       .then((currentRecipe) => {
         if (!currentRecipe) {
           return res.status(401).send({
@@ -61,7 +64,7 @@ export default {
           .destroy({
             where: {
               id: req.params.recipeId,
-              userId: req.body.userId
+              userId: req.decoded.currentUser.userId
             }
           })
           .then((recipe) => {
@@ -88,7 +91,7 @@ export default {
     Recipe
       .findById(req.params.recipeId)
       .then((currentRecipe) => {
-        const { userId } = req.body;
+        const { userId } = req.decoded.currentUser;
         if (currentRecipe.userId !== parseInt(userId, 10)) {
           return res.status(403).send({
             errorMessage: 'you can only modify your own recipe'
@@ -108,7 +111,7 @@ export default {
           .update(req.body, {
             where: {
               id: req.params.recipeId,
-              userId: req.body.userId
+              userId: req.decoded.currentUser.userId
             }
           })
           .then(() => {
@@ -126,7 +129,7 @@ export default {
                     recipeName: newRecipe.recipeName,
                     ingredients: newRecipe.ingredients,
                     descriptions: newRecipe.descriptions,
-                    userId: newRecipe.userId
+                    userId: newRecipe.decoded.currentUser.userId
                   }
                 });
               });
@@ -143,7 +146,7 @@ export default {
       .findOne({
         where: {
           recipeId: req.params.recipeId,
-          userId: req.body.userId
+          userId: req.decoded.currentUser.userId
         },
         include: [{
           model: models.User,
@@ -155,7 +158,7 @@ export default {
         .then(recipe => res.status(200).send({
           status: 'success',
           message: 'Review added successfully',
-          data: { userId: recipe.userId, recipeId: recipe.recipeId }
+          data: { userId: recipe.decoded.currentUser.userId, recipeId: recipe.recipeId }
         }))
         .then(() => {
           reviewRecipeNotication(req);
@@ -211,7 +214,7 @@ export default {
         Favourite
           .findOne({})
           .then((recipe) => {
-            if (recipe.length < 1) {
+            if (!recipe) {
               return res.status(401).send({
                 error: 'no favourite recipe found'
               });
@@ -225,21 +228,21 @@ export default {
   },
 
   favouriteRecipe(req, res) {
-    if (!req.body.userId || !req.params.recipeId) {
+    if (!req.decoded.currentUser.userId || !req.params.recipeId) {
       res.status(401).send({
-        message: 'Recipe Id and User Id is required'
+        message: 'Access denied!'
       });
     }
     return Favourite
       .findOne({
         where: {
           recipeId: req.params.recipeId,
-          userId: req.body.userId
+          userId: req.decoded.currentUser.userId
         }
       })
       .then(() => Favourite
         .create({
-          userId: req.body.userId,
+          userId: req.decoded.currentUser.userId,
           recipeId: req.params.recipeId
         })
         .then(() => res.status(200).send({
@@ -252,7 +255,7 @@ export default {
     return Favourite
       .findAll({
         where: {
-          userId: req.params.userId
+          userId: req.decoded.currentUser.userId
         },
         include: [{
           model: models.Recipe,
@@ -397,6 +400,7 @@ export default {
       })
       .then((result) => {
         const upvote = { recipeId: req.params.recipeId, upvote: result.count };
+        console.log(upvote)
         return res.status(200).json(upvote);
       });
   },
@@ -423,7 +427,7 @@ export default {
         }
       })
       .then((view) => {
-        if (view.length < 1) {
+        if (!view) {
           return res.status(404).send({
             message: 'no recipe found to be viewed'
           });
@@ -436,7 +440,7 @@ export default {
             recipeName: view.recipeName,
             ingredients: view.ingredients,
             descriptions: view.descriptions,
-            userId: view.userId
+            userId: view.decoded.currentUser.userId
           }
         });
       })

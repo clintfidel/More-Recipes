@@ -69,10 +69,10 @@ export const checkUserInput = (req, res, next) => {
       notEmpty: true,
       errorMessage: 'Give lists of recipe ingredients'
     },
-    userId: {
-      notEmpty: true,
-      errorMessage: 'User Id is required'
-    }
+    // userId: {
+    //   notEmpty: true,
+    //   errorMessage: 'User Id is required'
+    // }
   });
   const errors = req.validationErrors();
   if (errors) {
@@ -92,7 +92,7 @@ export const checkUserInput = (req, res, next) => {
     descriptions: req.body.descriptions,
     views: req.body.views,
     votes: req.body.votes,
-    userId: req.body.userId
+    userId: req.decoded.currentUser.userId
   };
   next();
 };
@@ -101,7 +101,7 @@ export const verifyUserId = (req, res, next) => {
   Recipe
     .findOne({
       where: {
-        userId: req.body.userId
+        userId: req.decoded.currentUser.userId
       }
     })
     .then((user) => {
@@ -120,7 +120,7 @@ export const verifyUserIdExist = (req, res, next) => {
   User
     .findOne({
       where: {
-        id: req.body.userId
+        id: req.decoded.currentUser.userId
       }
     })
     .then((user) => {
@@ -140,7 +140,7 @@ export const verifyRecipeId = (req, res, next) => {
       where: {
         $and: {
           recipeId: req.params.recipeId,
-          userId: req.body.userId
+          userId: req.decoded.currentUser.userId
         }
       }
     })
@@ -221,7 +221,7 @@ export const checkReviewsInput = (req, res, next) => {
       .json(allErrors);
   }
   req.reviewInput = {
-    userId: req.body.userId,
+    userId: req.decoded.currentUser.userId,
     content: req.body.content,
     recipeId: req.params.recipeId
   };
@@ -234,7 +234,7 @@ export const downVote = (req, res, next) => {
       where: {
         $and: [
           { recipeId: req.params.recipeId },
-          { userId: req.body.userId, }
+          { userId: req.decoded.currentUser.userId, }
         ]
       }
     })
@@ -244,7 +244,7 @@ export const downVote = (req, res, next) => {
           where: {
             $and: [
               { recipeId: req.params.recipeId },
-              { userId: req.body.userId, }
+              { userId: req.decoded.currentUser.userId, }
             ]
           }
         }).then(() => {
@@ -262,7 +262,7 @@ export const downVote = (req, res, next) => {
       } else if (found === null) {
         return Vote.create({
           recipeId: req.params.recipeId,
-          userId: req.body.userId,
+          userId: req.decoded.currentUser.userId,
           upvote: 0,
           downvote: 1
         }).then(() => {
@@ -279,7 +279,7 @@ export const upVote = (req, res, next) => {
       where: {
         $and: [
           { recipeId: req.params.recipeId },
-          { userId: req.body.userId, }
+          { userId: req.decoded.currentUser.userId, }
         ]
       }
     })
@@ -289,7 +289,7 @@ export const upVote = (req, res, next) => {
           where: {
             $and: [
               { recipeId: req.params.recipeId },
-              { userId: req.body.userId, }
+              { userId: req.decoded.currentUser.userId, }
             ]
           }
         }).then(() => {
@@ -307,7 +307,7 @@ export const upVote = (req, res, next) => {
       } else if (found === null) {
         return Vote.create({
           recipeId: req.params.recipeId,
-          userId: req.body.userId,
+          userId: req.decoded.currentUser.userId,
           upvote: 1,
           downvote: 0
         }).then(() => {

@@ -28,7 +28,7 @@ app.route('/favourites/:recipeId')
   .post(isLoggedIn, RecipeController.favouriteRecipe);
 
 // Get favourite recipe
-app.route('/favourites/:userId')
+app.route('/favourites')
   .get(isLoggedIn, RecipeController.getFavouriteRecipes);
 
 
@@ -51,7 +51,7 @@ app.route('/downvote/:recipeId')
 
 // get all upvote in descending order
 app.route('/recipes?sort=upvotes&order=descending')
-  .get(isLoggedIn, downVote, RecipeController.getUpVoteRecipe);
+  .get(isLoggedIn, downVote, RecipeController.getRecipe);
 
 // get the total number of upvotes
 app.route('/getUpVotes/:recipeId')

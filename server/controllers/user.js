@@ -30,11 +30,12 @@ export const signUp = (req, res) => {
             const currentUser = {
               userId: activeUser.id,
               username: activeUser.username,
-              fullname: activeUser.fullName,
+              fullName: activeUser.fullName,
               email: activeUser.email,
               active: activeUser.active,
               isAdmin: activeUser.isAdmin
             };
+            console.log(currentUser);
             sendMailSignUp(activeUser.email);
             const token = jwt.sign({ currentUser }, secret);
             return res.status(200).send({
@@ -76,7 +77,6 @@ export const login = (req, res) => {
             fullname: result.fullName,
             active: result.active,
             isAdmin: result.isAdmin,
-            plan: result.plan
           };
           const token = jwt.sign({ currentUser }, secret);
           res.status(200)
@@ -100,8 +100,31 @@ export const getAllUsers = (req, res) => {
 
       return res.status(200).json(user);
     })
-    .catch(() => res.status(403).json({
+    .catch(() => res.status(500).json({
       status: false
     }));
 };
 
+export const editProfile = (req, res) => {
+  User
+    .findOne({
+      where:  {id: req.decoded.currentUser.userId}
+    })
+    .then((edit) => {
+      edit
+        .update({fullname: edit.fullName,
+        email: edit.email})
+        .then((result) => {
+          return res.status(200).json({
+            message: 'profile edited successfully',
+            data: {
+              fullName: result.fullName,
+              email: result.email
+            }
+          })
+        })
+        .catch(() => res.status(500).json({
+          message: 'internal server error'
+        }))
+    })
+}
