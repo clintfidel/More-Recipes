@@ -48,7 +48,6 @@ export const reviewRecipeNotication = (req) => {
           }
           winston.info('Email sent to: %s', response);
         });
-        console.log(recipe, user, recipe.userId, '====>');
       }));
 };
 export const checkUserInput = (req, res, next) => {
@@ -69,10 +68,6 @@ export const checkUserInput = (req, res, next) => {
       notEmpty: true,
       errorMessage: 'Give lists of recipe ingredients'
     },
-    // userId: {
-    //   notEmpty: true,
-    //   errorMessage: 'User Id is required'
-    // }
   });
   const errors = req.validationErrors();
   if (errors) {
@@ -171,9 +166,7 @@ export const verifyRecipeId = (req, res, next) => {
 //       }
 //       next();
 //     })
-//     .catch(() => res.status(401).send({
-//       error: 'pls supply the name of the recipe'
-//     }));
+//     .catch(() => res.status(500).send('Internal server error'));
 // };
 
 
