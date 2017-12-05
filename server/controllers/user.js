@@ -35,7 +35,6 @@ export const signUp = (req, res) => {
               active: activeUser.active,
               isAdmin: activeUser.isAdmin
             };
-            console.log(currentUser);
             sendMailSignUp(activeUser.email);
             const token = jwt.sign({ currentUser }, secret);
             return res.status(200).send({
@@ -108,23 +107,21 @@ export const getAllUsers = (req, res) => {
 export const editProfile = (req, res) => {
   User
     .findOne({
-      where:  {id: req.decoded.currentUser.userId}
+      where: { id: req.decoded.currentUser.userId }
     })
     .then((edit) => {
       edit
-        .update({fullname: edit.fullName,
-        email: edit.email})
-        .then((result) => {
-          return res.status(200).json({
-            message: 'profile edited successfully',
-            data: {
-              fullName: result.fullName,
-              email: result.email
-            }
-          })
-        })
+        .update({ fullname: edit.fullName,
+          email: edit.email })
+        .then(result => res.status(200).json({
+          message: 'profile edited successfully!!!',
+          data: {
+            fullName: result.fullName,
+            email: result.email
+          }
+        }))
         .catch(() => res.status(500).json({
           message: 'internal server error'
-        }))
-    })
-}
+        }));
+    });
+};
