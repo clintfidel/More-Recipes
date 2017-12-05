@@ -16,11 +16,11 @@ app.route('/')
 
 // Delete a recipe
 app.route('/:recipeId')
-  .delete(isLoggedIn, RecipeController.deleteARecipe);
+  .delete(isLoggedIn,verifyUserId, RecipeController.deleteARecipe);
 
 // Modify a recipe
 app.route('/:recipeId')
-  .put(isLoggedIn, RecipeController.modifyRecipe);
+  .put(isLoggedIn, verifyUserId, RecipeController.modifyRecipe);
 
 
 // Add favourite recipe
@@ -31,6 +31,9 @@ app.route('/favourites/:recipeId')
 app.route('/favourites')
   .get(isLoggedIn, RecipeController.getFavouriteRecipes);
 
+// search for recipe
+app.route('/recipes')
+  .get(isLoggedIn, RecipeController.searchRecipe);
 
 // upVote a recipe
 app.route('/upvote/:recipeId')
@@ -47,11 +50,6 @@ app.route('/upvote/:recipeId')
 // get all downvote
 app.route('/downvote/:recipeId')
   .get(isLoggedIn, RecipeController.getDownVoteRecipe);
-
-
-// get all upvote in descending order
-app.route('/recipes?sort=upvotes&order=descending')
-  .get(isLoggedIn, downVote, RecipeController.getRecipe);
 
 // get the total number of upvotes
 app.route('/getUpVotes/:recipeId')

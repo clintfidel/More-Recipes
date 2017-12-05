@@ -30,61 +30,103 @@ export default {
   },
 
   getRecipe(req, res) {
+    const pageNumber = Number(req.query.myPage);
+    const limit = 15;
+    let offset;
+    let page;
+    const message = 'Sorry no recipe found for this page';
+    if (pageNumber === 0) {
+      offset = 0;
+    } else {
+      page = pageNumber;
+      offset = limit * (page - 1);
+    }
+    Recipe
+      .findAndCountAll({
+        order: [['views', req.query.order || 'ASC']],
+        attributes: ['id', 'recipeName', 'votes', 'views'],
+        include: [{
+          model: models.User,
+          attributes: ['username', 'email', 'updatedAt']
+        }],
+        limit,
+        offset,
+      })
+      .then((recipes) => {
+        const pages = Math.ceil(recipes.count / limit);
+        if (!recipes.count) {
+          return res.status(404).send('No recipe found');
+        } else if (pageNumber > pages) {
+          return res.status(404).send(message);
+        }
+        return res.status(200).json({ recipes, count: recipes.count, pages });
+      })
+      .catch(() => res.status(500).send('Internal sever Error'));
+  },
+
+  searchRecipe(req, res) {
+    const query = req.query.search;
     return Recipe
       .findAll({
-        order: [['views', req.query.order || 'DESC']],
+        where: {
+          $or: [
+            {
+              recipeName: { $iLike: `%${query}%` }
+            },
+            {
+              ingredients: { $iLike: `%${query}%` }
+            }
+          ]
+        },
         include: [{
-          model: models.Review,
-          attributes: ['content'],
-          include: [{
-            model: models.User,
-            attributes: ['username', 'email', 'updatedAt']
-          }]
+          model: models.User,
+          attributes: ['id', 'username', 'email', 'updatedAt']
         }]
       })
-      .then(recipes => res.status(200).json(recipes))
-      .catch(error => res.status(400).send(error));
+      .then((recipe) => {
+        console.log(recipe, recipe.length, '=======>');
+        if (recipe.length < 1) {
+          res.status(404).send('no match recipe found');
+        } else {
+          res.status(200).json({
+            mesage: 'recipe found',
+            recipe
+          });
+        }
+      })
+      .catch(() => res.status(500).send('Internal sever error'));
   },
 
   deleteARecipe(req, res) {
-    return Recipe
-      .findOne({ where: 
-        { id: req.params.recipeId, 
-        userId: req.decoded.currentUser.userId 
-        } })
+    Recipe
+      .findById(req.params.recipeId)
       .then((currentRecipe) => {
-        if (!currentRecipe) {
-          return res.status(401).send({
-            status: 'failed',
-            error: ' sorry you can only delete your own recipe'
+        const { userId } = req.decoded.currentUser;
+        if (currentRecipe.userId !== parseInt(userId, 10)) {
+          return res.status(403).send({
+            message: 'sorry! you can only delete your own recipe'
           });
         }
-
-        return Recipe
-          .destroy({
-            where: {
-              id: req.params.recipeId,
-              userId: req.decoded.currentUser.userId
-            }
-          })
-          .then((recipe) => {
-            if (recipe) {
-              return res.status(200).send({
-                status: 'success',
-                message: 'Recipe deleted successfully'
-
-              });
-            }
-            res.status(404).send({
-              status: false,
-              message: 'No recipe found in the database...'
-            });
-          })
-          .catch(error => res.status(409).send({
-            status: 'false',
-            message: error
-          }));
       });
+
+    return Recipe
+      .destroy({
+        where: {
+          id: req.params.recipeId,
+          userId: req.decoded.currentUser.userId
+        }
+      })
+      .then((recipe) => {
+        if (recipe) {
+          return res.status(200).send({
+            message: 'Recipe deleted successfully'
+          });
+        }
+        res.status(404).send({
+          message: 'No recipe found in the database...'
+        });
+      })
+      .catch(() => res.status(500).send('Internal sever Error'));
   },
 
   modifyRecipe(req, res) {
@@ -94,51 +136,36 @@ export default {
         const { userId } = req.decoded.currentUser;
         if (currentRecipe.userId !== parseInt(userId, 10)) {
           return res.status(403).send({
-            errorMessage: 'you can only modify your own recipe'
+            message: 'you can only modify your own recipe'
           });
         }
       });
 
-
     return Recipe
-      .findOne({
+      .update(req.body, {
         where: {
-          id: req.params.recipeId
+          id: req.params.recipeId,
+          userId: req.decoded.currentUser.userId
         }
       })
-      .then(() => {
-        Recipe
-          .update(req.body, {
-            where: {
-              id: req.params.recipeId,
-              userId: req.decoded.currentUser.userId
-            }
-          })
-          .then(() => {
-            Recipe
-              .findById(req.params.recipeId)
-              .then((newRecipe) => {
-                if (!newRecipe) {
-                  return res.status(404).send({
-                    message: 'no recipe found'
-                  });
-                }
-                return res.status(200).send({
-                  message: 'recipe modified successfully',
-                  data: {
-                    recipeName: newRecipe.recipeName,
-                    ingredients: newRecipe.ingredients,
-                    descriptions: newRecipe.descriptions,
-                    userId: newRecipe.decoded.currentUser.userId
-                  }
-                });
-              });
-          })
+      .then((newRecipe) => {
+        if (!newRecipe) {
+          return res.status(404).send({
+            message: 'no recipe found'
+          });
+        }
+        return res.status(200).send({
+          message: 'recipe modified successfully',
+          data: {
+            recipeName: newRecipe.recipeName,
+            ingredients: newRecipe.ingredients,
+            descriptions: newRecipe.descriptions,
+            userId: newRecipe.decoded.currentUser.userId
+          }
+        });
+      })
 
-          .catch(error => res.status(400).send({
-            message: error
-          }));
-      });
+      .catch(() => res.status(500).send('Internal sever Error'));
   },
 
   reviewRecipe(req, res) {
@@ -195,37 +222,6 @@ export default {
       });
   },
 
-  searchFavouriteRecipe(req, res) {
-    const query = req.query.search;
-    return Recipe
-      .findAll({
-        where: {
-          $or: [
-            {
-              recipeName: { $iLike: `%${query}%` }
-            },
-            {
-              ingredient: { $iLike: `%${query}%` }
-            }
-          ]
-        }
-      })
-      .then(() => {
-        Favourite
-          .findOne({})
-          .then((recipe) => {
-            if (!recipe) {
-              return res.status(401).send({
-                error: 'no favourite recipe found'
-              });
-            }
-            return res.status(200).json({
-              message: 'recipe found'
-            });
-          })
-          .catch(error => res.status(404).send(error));
-      });
-  },
 
   favouriteRecipe(req, res) {
     if (!req.decoded.currentUser.userId || !req.params.recipeId) {
@@ -400,7 +396,7 @@ export default {
       })
       .then((result) => {
         const upvote = { recipeId: req.params.recipeId, upvote: result.count };
-        console.log(upvote)
+        console.log(upvote);
         return res.status(200).json(upvote);
       });
   },
