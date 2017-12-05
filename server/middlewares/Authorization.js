@@ -5,7 +5,7 @@ import nodemailer from 'nodemailer';
 import winston from 'winston';
 import db from '../models/';
 
-// dotenv.load();
+
 dotenv.config();
 const key = process.env.secretKey;
 const { User } = db;
@@ -140,10 +140,7 @@ export const validateLogin = (req, res, next) => {
 
 //       next();
 //     })
-//     .catch(error => res.status(401).send({
-//       error,
-//       message: 'invalid details passed'
-//     }));
+//     .catch(() => res.status(500).send('Internal sever error));
 // };
 
 // export const isSignedUpWithEmail = (req, res, next) => {
@@ -159,13 +156,9 @@ export const validateLogin = (req, res, next) => {
 //           error: 'email already exist in database'
 //         });
 //       }
-
 //       next();
 //     })
-//     .catch(error => res.status(401).send({
-//       error,
-//       message: 'invalid details passed'
-//     }));
+//     .catch(() => res.status(500).send('Internal sever error));
 // };
 
 export const isLoggedIn = (req, res, next) => {
