@@ -2,25 +2,24 @@ html, body {
     height: auto;
 }
 body {
-  background: linear-gradient(to bottom, rgb(222, 166, 140), rgba(62, 37, 12, 0.65)), url(/images/recipe1.jpg);
+  background: linear-gradient(to bottom, rgb(222, 166, 140), rgba(62, 37, 12, 0.65)), url(https://lh3.googleusercontent.com/LXWgFIkegazT7_wkG1T9R6k89XTAI0MLpumbseP_ozsvfyG_BRNUBnAcmj-KkPIWq90=h900);
   background-size: cover;
   background-repeat: no-repeat;
-  background-position: fixed;
 }
 
 * {
     margin: 0;
   }
 .wrapper {
-    min-height: 100%;
+    min-height: 100px;
     padding-top: 90px;
-    height: auto !important;
-    height: 100%;
-    margin: 0 auto -142px; /* the bottom margin is the negative value of the footer's height */
+    height: auto ;
+
+    /* the bottom margin is the negative value of the footer's height */
 }
-.footer, .push {
-    height: 142px; /* .push must be the same height as .footer */
-}
+  .footer, .push {
+    height: 300px; /* .push must be the same height as .footer */
+} 
 
 .navbar-brand{
   font-size: 32px;
@@ -136,6 +135,11 @@ body {
   -webkit-transition: .5s;
   -moz-transition: .5s;
   transition: .5s;
+}
+.text-center a {
+  color: #888 !important;
+  font-size: 12px !important;
+
 }
 
 .form-align{

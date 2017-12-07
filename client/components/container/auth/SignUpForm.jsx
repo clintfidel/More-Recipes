@@ -66,22 +66,26 @@ class SignUpForm extends Component {
           if(value.length < 5) {
             this.setState({ usernameError: 'Username should be more than 5 letters'})
           }
+         
           break;
       case 'password': 
           if(value.length < 5) {
             this.setState({ passwordError: 'Password should be more than 5 characters'})
           }
+         
           break;
       case 'email': 
-          let email = value.endsWith('@gmail.com')
-          if(!email ) {
-            this.setState({ emailError: 'email should end with the suffix @gmail.com'})
+          
+          if(!(value.endsWith('.com') && /@/.test(value))) {
+            this.setState({ emailError: 'invalid email'})
           }
+         
           break;
       case 'confirmPassword':
           if(value !== this.state.password) {
             this.setState({passwordConfirm: 'Password does not match'})
           }
+         
     }
   }
   render () {
@@ -94,7 +98,6 @@ class SignUpForm extends Component {
         onSubmit={this.onSubmit}
       >
         <div className="form-group">
-        <div style = {{color: 'red'}}>{}</div>
           <div className="form-group">
             <input
             onChange={this.onChange}
@@ -176,6 +179,9 @@ class SignUpForm extends Component {
                 className="form-control btn btn-register"
                 value="Register Now"
               />
+              <div className="text-center">
+              <a href=" " tabIndex="-5" className="SignIn">Already have an accout?SignIn</a>
+            </div>
             </div>
           </div>
         </div>

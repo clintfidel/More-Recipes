@@ -84,7 +84,6 @@ export default {
         }]
       })
       .then((recipe) => {
-        console.log(recipe, recipe.length, '=======>');
         if (recipe.length < 1) {
           res.status(404).send('no match recipe found');
         } else {
@@ -190,11 +189,8 @@ export default {
         .then(() => {
           reviewRecipeNotication(req);
         })
-        .catch((err) => {
-          res.status(400).send({
-            err,
-            message: 'no recipe found'
-          });
+        .catch(() => {
+          res.status(500).send('Internal server error');
         }));
   },
   getReview(req, res) {

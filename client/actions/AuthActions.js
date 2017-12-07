@@ -1,6 +1,6 @@
 import axios from 'axios';
 import jwtDecode from 'jwt-decode';
-import { setAuthorizationToken } from '../utils/Authorization';
+import setAuthorizationToken from '../utils/Authorization';
 import * as Types from './types';
 
 /**
@@ -12,7 +12,7 @@ import * as Types from './types';
 export const signup = user => ({
   type: Types.SIGNUP_USER,
   newUser: user
-}); 
+});
 export const signupError = error => ({
   type: Types.SIGNUP_ERROR,
   error: error.message
@@ -20,11 +20,11 @@ export const signupError = error => ({
 
 export const registerAction = userDetails => dispatch => axios
   .post('/api/v1/users/signup', userDetails)
-  .then((res) => {
-    const token = res.data.Token;
+  .then((response) => {
+    const token = response.data.Token;
     const currentUser = jwtDecode(token);
     setAuthorizationToken(token);
-    window.localStorage.setItem('token', token);
+    localStorage.setItem('token', token);
     dispatch(signup(currentUser));
   })
   .catch((error) => {
